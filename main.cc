@@ -157,36 +157,6 @@ class Route : public AddressList {
             return Route(greedy_output);
         }
 
-        /*
-        Route greedy_route(){
-            vector<Address> stops = addresses;
-            Route result;
-            
-            //add start to result, remove it from stop list
-            stops.erase(stops.begin());//since result is a Route, already has depot
-
-            //turn stops vector into non-endpoint subvector
-            stops.erase(stops.begin() + stops.size());
-
-            Address we_are_here = depot;
-            for(auto stop:stops){
-                stop.print();
-            }
-            
-            cout << "pruning step:" <<endl;
-            //iterate through 'stops', append and erase as we go
-            while(stops.size() > 0){
-                int closest_address_index = index_closest_to(we_are_here);
-                we_are_here = stops[closest_address_index]; 
-                we_are_here.print() ;
-                result.add_address(we_are_here);
-                stops.erase(stops.begin() + closest_address_index);
-
-            }
-            return result; 
-        }
-        */
-
         string as_string(){
             string output = "";
             for (Address a: addresses) {
