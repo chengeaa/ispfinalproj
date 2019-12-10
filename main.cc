@@ -1,4 +1,6 @@
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include <time.h>
 #include <assert.h>
 #include <memory>
@@ -774,14 +776,14 @@ void prime_ratio_output(int num_addresses, int max_length){
     }
 }
 
-void dynamic_test1(){
+float dynamic_test1(){
     // in which we simply add new prime and nonprime addresses to list 1 each day
     // leaving list 2 to do what it will with the mopt2 output (like a queue)
     srand(time(NULL));
 
-    int days = 5;
+    int days = 50;
       
-    int num_addresses = 30;
+    int num_addresses = 50;
     int max_length = 20; // basically determines graph bound box 
     int prime_chance = 3; // x for 1/x where 1/x is the chance that an address is prime
 
@@ -810,7 +812,7 @@ void dynamic_test1(){
         }
 
         
-        cout << "day " << i << endl;
+        //cout << "day " << i << endl;
         //cout << "initial routes" << endl;
         //evaluate(route_a, route_b);
         initial_total = route_a.length() + route_b.length();
@@ -828,101 +830,114 @@ void dynamic_test1(){
         route_a.clear();
         primes.clear();
     }
-    cout << "average percent difference: " << sum_difference/sum_initial * 100 << endl;
+    //cout << "average percent difference: " << sum_difference/sum_initial * 100 << endl;
+    return sum_difference/sum_initial * 100;
 }
 
-void dynamic_test2(){
+float dynamic_test2(){
     // in which I add all addresses in route_2 to route_1 on the next day and run mopt2
-    srand(69);
+    srand(time(NULL));
 
-    int days = 20;
+    int days = 50;
       
-    int num_addresses = 20;
-    int max_length = 20;
-    Route route_a, route_b;
-    AddressList addresses;
-    AddressList primes;
+    int num_addresses = 50;
+    int max_length = 20; // basically determines graph bound box 
+    int prime_chance = 3; // x for 1/x where 1/x is the chance that an address is prime in route1
 
-    // populate initial lists
-    for(int i = 0; i < num_addresses; i++){
-        Address newaddress = Address(rand() % max_length, rand() % max_length);
-        addresses.add_address(newaddress);
-        if(rand() % 2 == 0){ //choose random route to add to
-           route_a.add_address(newaddress);
-        } else {
-           route_b.add_address(newaddress);
-        }
-    }
-    cout << endl;
-    cout << "original routes" << endl;
-    evaluate(route_a, route_b);
+    Route route_a, route_b;
+    AddressList addresses; // all addresses in total graph
+    AddressList primes;
+    float sum_initial, sum_difference;
 
     for (int i = 0; i < days; i++){
-        AddressList available_for_prime = addresses;
-        Route route1, route2;
-        route1 = route_a; route2 = route_b;
 
-        cout << "initial routes" << endl;
-        evaluate(route1, route2);
-
-        for (int j = 0; j < i; j++){
-            Address random_address = available_for_prime.pick_random();
-            primes.add_address(random_address);
-            available_for_prime.erase(available_for_prime.index_closest_to(random_address));
+        float initial_total, final_total;
+        for (int j = 0; j < rand() % num_addresses ; j++){ //tack on new primes into route1, nonprimes into route2
+            Address newaddress = Address(rand() % max_length, rand() % max_length);
+            if(rand() % prime_chance * 2 == 0){
+                route_a.add_address(newaddress);
+                primes.add_address(newaddress);
+            } else {
+                route_b.add_address(newaddress);
+            }
         }
-        cout << "With " << i << " out of " << addresses.size() << " prime addresses, " << endl;
-        primes.print();
-        cout << " my routes are " << endl;
-        route1.multi_opt2(route2, primes.my_addresses());
-        evaluate(route1, route2);
+
+        
+        //cout << "day " << i << endl;
+        //cout << "initial routes" << endl;
+        //evaluate(route_a, route_b);
+        initial_total = route_a.length() + route_b.length();
+        //cout << "my primes are " << endl;
+        //primes.print();
+        //cout << " my routes are " << endl;
+        route_a.multi_opt2(route_b, primes.my_addresses());
+        //evaluate(route_a, route_b);
+        final_total  = route_a.length() + route_b.length();
+
+        sum_initial = sum_initial + initial_total;
+        sum_difference = sum_difference + (final_total - initial_total);
+
+        //at end of the day, clear routes
+        route_a.clear();
+        primes.clear();
+        route_a = route_b;
+        route_b.clear();
     }
+    //cout << "average percent difference: " << sum_difference/sum_initial * 100 << endl;
+    return sum_difference/sum_initial * 100;
 }
 
-void dynamic_test3(){
-    // in which I add all addresses in route_2 to route_1 on the next day and run opt2 on route1
-    srand(69);
+float dynamic_test3(){
+    // in which I add all addresses in route_2 to route_1 on the next day and run opt2
+    srand(time(NULL));
 
-    int days = 20;
+    int days = 50;
       
-    int num_addresses = 20;
-    int max_length = 20;
-    Route route_a, route_b;
-    AddressList addresses = {};
-    AddressList primes;
+    int num_addresses = 50;
+    int max_length = 20; // basically determines graph bound box 
+    int prime_chance = 3; // x for 1/x where 1/x is the chance that an address is prime in route1
 
-    // populate initial lists
-    for(int i = 0; i < num_addresses; i++){
-        Address newaddress = Address(rand() % max_length, rand() % max_length);
-        addresses.add_address(newaddress);
-        if(rand() % 2 == 0){ //choose random route to add to
-           route_a.add_address(newaddress);
-        } else {
-           route_b.add_address(newaddress);
-        }
-    }
-    cout << endl;
-    cout << "original routes" << endl;
-    evaluate(route_a, route_b);
+    Route route_a, route_b;
+    AddressList addresses; // all addresses in total graph
+    AddressList primes;
+    float sum_initial, sum_difference;
 
     for (int i = 0; i < days; i++){
-        AddressList available_for_prime = addresses;
-        Route route1, route2;
-        route1 = route_a; route2 = route_b;
 
-        cout << "initial routes" << endl;
-        evaluate(route1, route2);
-
-        for (int j = 0; j < i; j++){
-            Address random_address = available_for_prime.pick_random();
-            primes.add_address(random_address);
-            available_for_prime.erase(available_for_prime.index_closest_to(random_address));
+        float initial_total, final_total;
+        for (int j = 0; j < rand() % num_addresses ; j++){ //tack on new primes into route1, nonprimes into route2
+            Address newaddress = Address(rand() % max_length, rand() % max_length);
+            if(rand() % prime_chance * 2 == 0){
+                route_a.add_address(newaddress);
+                primes.add_address(newaddress);
+            } else {
+                route_b.add_address(newaddress);
+            }
         }
-        cout << "With " << i << " out of " << addresses.size() << " prime addresses, " << endl;
-        primes.print();
-        cout << " my routes are " << endl;
-        route1.multi_opt2(route2, primes.my_addresses());
-        evaluate(route1, route2);
+
+        
+        //cout << "day " << i << endl;
+        //cout << "initial routes" << endl;
+        //evaluate(route_a, route_b);
+        initial_total = route_a.length() + route_b.length();
+        //cout << "my primes are " << endl;
+        //primes.print();
+        //cout << " my routes are " << endl;
+        route_a.opt2();
+        //evaluate(route_a, route_b);
+        final_total  = route_a.length() + route_b.length();
+
+        sum_initial = sum_initial + initial_total;
+        sum_difference = sum_difference + (final_total - initial_total);
+
+        //at end of the day, clear routes
+        route_a.clear();
+        primes.clear();
+        route_a = route_b;
+        route_b.clear();
     }
+    //cout << "average percent difference: " << sum_difference/sum_initial * 100 << endl;
+    return sum_difference/sum_initial * 100;
 }
 
 void rand_test(){
@@ -935,7 +950,25 @@ int main(int argc, char** argv) {
     //int a, b;
     //prime_ratio_output(atoi(argv[1]), atoi(argv[2]));
     //prime_ratio_test();
-    dynamic_test1();
+    vector<float> outputs;
+    float mean, std;
+    for(int i = 0; i < 20; i++){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        outputs.push_back(dynamic_test3());
+    }
+    float N = outputs.size();
+
+    for(float x: outputs){
+        mean = mean + x;
+    }
+    mean = mean/N;
+
+    for(float x: outputs){
+        std = std + pow((x - mean), 2);
+    }
+    cout << std << endl;
+    std = pow(1./(N - 1.) * std, .5);
+    cout << mean << "," << std << endl;
     return 0;
 }
 
